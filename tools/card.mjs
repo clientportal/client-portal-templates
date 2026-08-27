@@ -95,7 +95,7 @@ const changed = [];
 // ── Purge-only mode ─────────────────────────────────────────────────────────
 
 if ( purgeOnly ) {
-	purge( purgePaths( entry ) );
+	await purge( purgePaths( entry ) );
 	process.exit( 0 );
 }
 
@@ -211,7 +211,7 @@ try {
 	process.exit( 1 );
 }
 
-purge( purgePaths( manifest.templates[ idx ] ) );
+await purge( purgePaths( manifest.templates[ idx ] ) );
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
