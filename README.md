@@ -12,7 +12,8 @@ The plugin fetches `manifest.json` from this URL, reads the template list, and d
 manifest.json                   Gallery index — the plugin reads this
 templates/<id>/<id>.json        Template JSON (rewritten export with CDN URLs)
 images/<id>/<filename>          Images referenced by template source_urls
-tools/author.mjs                Authoring script (Node, zero dependencies)
+tools/author.mjs                Add a new template (Node, zero dependencies)
+tools/card.mjs                  Update an existing template's gallery card
 package.json                    ESM module declaration
 ```
 
@@ -91,6 +92,46 @@ git push origin --delete test/<id>-<timestamp>
 ```
 
 Remove the `LECO_CP_FEATURED_TEMPLATES_BASE_URL` override from `wp-config.php`.
+
+## Updating a card (no re-export)
+
+A gallery card is four things — **title**, **description**, **thumbnail**, and
+the **preview link**. None of them touch the template's content, so changing one
+does not mean re-exporting the portal.
+
+```
+node tools/card.mjs --id onboarding \
+  --description "Give new clients a branded first step before the project kicks off." \
+  --thumbnail ~/Desktop/onboarding-card.png \
+  --preview-url "https://clientportalportals.com/client/onboarding-inspiration/" \
+  --publish
+```
+
+Only the fields you pass are touched; everything else is left alone. Pass as
+many or as few as you like.
+
+`--publish` commits the changed files, pushes to `main`, and purges the CDN so
+the change is live straight away instead of within 24 hours. Leave it off and
+the script prints the git commands for you to run yourself.
+
+Other flags:
+
+| Flag | What it does |
+|------|--------------|
+| `--title "..."` | Rename the card in the gallery |
+| `--clear-preview` | Remove the preview link (the button disappears) |
+| `--purge` | Refresh the CDN and change nothing else |
+
+The script refuses a preview URL that is not `https`, and a thumbnail that is
+not `.png`, `.jpg`, `.jpeg`, `.webp` or `.gif` — both mirror what the plugin
+accepts, so a card can never be published with a field the plugin will drop.
+
+**Thumbnails** are ~800×366 (roughly 2.2:1). Anything else works, but that
+ratio matches the set on the inspiration page and is what the card reserves
+space for.
+
+**To add a brand new template**, use `author.mjs` (above) — `card.mjs` only
+edits templates that are already in the manifest.
 
 ## Why images must be renamed when replaced
 
