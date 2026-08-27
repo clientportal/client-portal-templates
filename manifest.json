@@ -5,7 +5,7 @@
 			"title": "Onboarding",
 			"description": "Give new clients a branded first step before the project kicks off.",
 			"file": "templates/onboarding/onboarding.json",
-			"thumbnail": "images/onboarding/onboarding-card.png",
+			"thumbnail": "images/onboarding/onboarding-card.webp",
 			"preview_url": "https://clientportalportals.com/client/onboarding-inspiration/"
 		}
 	]

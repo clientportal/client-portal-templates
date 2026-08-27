@@ -121,6 +121,7 @@ Other flags:
 | `--title "..."` | Rename the card in the gallery |
 | `--clear-preview` | Remove the preview link (the button disappears) |
 | `--purge` | Refresh the CDN and change nothing else |
+| `--no-webp` | Keep the thumbnail's original format |
 
 The script refuses a preview URL that is not `https`, and a thumbnail that is
 not `.png`, `.jpg`, `.jpeg`, `.webp` or `.gif` — both mirror what the plugin
@@ -129,6 +130,23 @@ accepts, so a card can never be published with a field the plugin will drop.
 **Thumbnails** are ~800×366 (roughly 2.2:1). Anything else works, but that
 ratio matches the set on the inspiration page and is what the card reserves
 space for.
+
+### Thumbnails are converted to WebP
+
+Drop in a PNG or JPEG and the script re-encodes it to WebP at quality 90. The
+onboarding card went **104 KB → 15 KB, 85% smaller**, with no visible
+difference — these are screenshots, which WebP handles far better than PNG.
+Every browser that runs wp-admin supports it.
+
+At 50 gallery entries that is the difference between ~5 MB of thumbnails and
+~800 KB.
+
+Conversion needs `cwebp` (`brew install webp`). Without it the script warns and
+publishes the original rather than failing — you get a heavier card, not a
+broken one. Pass `--no-webp` to keep the original deliberately.
+
+Because the extension changes, the CDN URL changes too, so a converted
+thumbnail busts its own cache.
 
 **To add a brand new template**, use `author.mjs` (above) — `card.mjs` only
 edits templates that are already in the manifest.

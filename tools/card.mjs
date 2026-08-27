@@ -24,8 +24,9 @@
  */
 
 import {
-	readFileSync, writeFileSync, existsSync,
+	readFileSync, writeFileSync, existsSync, unlinkSync, statSync,
 } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { join, basename, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,7 +43,7 @@ const IMAGE_EXTS = [ '.png', '.jpg', '.jpeg', '.webp', '.gif' ];
 
 const argv = process.argv.slice( 2 );
 let id, title, description, thumbnail, previewUrl;
-let clearPreview = false, publish = false, purgeOnly = false;
+let clearPreview = false, publish = false, purgeOnly = false, noWebp = false;
 
 for ( let i = 0; i < argv.length; i++ ) {
 	const a = argv[ i ];
@@ -54,6 +55,7 @@ for ( let i = 0; i < argv.length; i++ ) {
 	if ( a === '--clear-preview' ) { clearPreview = true; continue; }
 	if ( a === '--publish' ) { publish = true; continue; }
 	if ( a === '--purge' ) { purgeOnly = true; continue; }
+	if ( a === '--no-webp' ) { noWebp = true; continue; }
 	console.error( `ERROR: unknown argument "${ a }"` );
 	process.exit( 1 );
 }
@@ -63,7 +65,7 @@ if ( ! id ) {
 		'Usage: node tools/card.mjs --id <slug>\n' +
 		'       [--title "..."] [--description "..."]\n' +
 		'       [--thumbnail path/to/card.png] [--preview-url "https://..."]\n' +
-		'       [--clear-preview] [--publish]\n\n' +
+		'       [--clear-preview] [--no-webp] [--publish]\n\n' +
 		'       node tools/card.mjs --id <slug> --purge'
 	);
 	process.exit( 1 );
@@ -140,16 +142,28 @@ if ( thumbnail ) {
 		process.exit( 1 );
 	}
 
-	const name = basename( thumbnail );
-	const ext = extname( name ).toLowerCase();
+	let source = thumbnail;
+	let ext = extname( basename( source ) ).toLowerCase();
 
 	if ( ! IMAGE_EXTS.includes( ext ) ) {
 		console.error( `ERROR: thumbnail must be one of ${ IMAGE_EXTS.join( ', ' ) }. Got: ${ ext }` );
 		process.exit( 1 );
 	}
 
+	// Card thumbnails are screenshots, which WebP encodes far smaller than PNG
+	// at the same visible quality — the onboarding card goes 104 KB -> 16 KB.
+	// Every browser that runs wp-admin supports it.
+	if ( '.webp' !== ext && ! noWebp ) {
+		const converted = toWebp( source );
+		if ( converted ) {
+			source = converted;
+			ext = '.webp';
+		}
+	}
+
+	const name = basename( source );
 	const dest = join( repoRoot, 'images', id, name );
-	const bytes = readFileSync( thumbnail );
+	const bytes = readFileSync( source );
 
 	// A changed image under an unchanged filename keeps the same CDN URL, so
 	// customers would be served the old picture from cache for up to 24 hours.
@@ -162,6 +176,12 @@ if ( thumbnail ) {
 	}
 
 	writeFileSync( dest, bytes );
+
+	// Drop the temp file conversion left behind.
+	if ( source !== thumbnail ) {
+		unlinkSync( source );
+	}
+
 	thumbRelPath = `images/${ id }/${ name }`;
 	entry.thumbnail = thumbRelPath;
 	changed.push( 'thumbnail' );
@@ -214,6 +234,49 @@ try {
 await purge( purgePaths( manifest.templates[ idx ] ) );
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Re-encode an image as WebP in the system temp dir.
+ *
+ * Returns null rather than throwing when cwebp is not installed: a machine
+ * without libwebp should still be able to publish a card, just a heavier one,
+ * and the warning says what it cost.
+ *
+ * @param {string} input Path to the source image.
+ * @return {string|null} Path to the WebP file, or null if conversion was skipped.
+ */
+function toWebp( input ) {
+	const out = join( tmpdir(), basename( input, extname( input ) ) + '.webp' );
+
+	try {
+		execFileSync( 'cwebp', [ '-quiet', '-q', '90', input, '-o', out ], { stdio: 'pipe' } );
+	} catch ( e ) {
+		console.warn( 'ENOENT' === e.code
+			? '\nNOTE: cwebp not found, using the image as-is.'
+			: `\nNOTE: WebP conversion failed (${ String( e.message ).split( '\n' )[ 0 ] }), using the image as-is.` );
+		console.warn( '      Install it with "brew install webp" — WebP thumbnails are several times smaller.' );
+		return null;
+	}
+
+	const before = statSync( input ).size;
+	const after = statSync( out ).size;
+	console.log(
+		`Converted to WebP: ${ kb( before ) } -> ${ kb( after ) } ` +
+		`(${ Math.round( ( 1 - after / before ) * 100 ) }% smaller)`
+	);
+
+	return out;
+}
+
+/**
+ * Format a byte count as whole KB.
+ *
+ * @param {number} bytes Size in bytes.
+ * @return {string}
+ */
+function kb( bytes ) {
+	return `${ Math.round( bytes / 1024 ) } KB`;
+}
 
 /**
  * Run a git command in the repo root.
