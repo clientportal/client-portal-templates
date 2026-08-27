@@ -3,7 +3,9 @@
 		{
 			"id": "onboarding",
 			"title": "Onboarding",
-			"file": "templates/onboarding/onboarding.json"
+			"description": "Give new clients a branded first step before the project kicks off.",
+			"file": "templates/onboarding/onboarding.json",
+			"thumbnail": "images/onboarding/onboarding-card.png"
 		}
 	]
 }

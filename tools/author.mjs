@@ -10,6 +10,8 @@
  * Usage:
  *   node tools/author.mjs <export.json> --id <slug>
  *       [--title "Gallery Title"]
+ *       [--description "One line shown on the gallery card"]
+ *       [--thumbnail path/to/card.png]
  *       [--preview-url "https://..."]
  *       [--plugin-dir ../leco-client-portal]
  */
@@ -28,7 +30,7 @@ const CDN_BASE = `https://cdn.jsdelivr.net/gh/${ REPO }@main`;
 // ── Args ────────────────────────────────────────────────────────────────────
 
 const argv = process.argv.slice( 2 );
-let exportPath, id, title, previewUrl;
+let exportPath, id, title, previewUrl, description, thumbnail;
 let pluginDir = resolve( __dirname, '../../leco-client-portal' );
 
 for ( let i = 0; i < argv.length; i++ ) {
@@ -36,6 +38,8 @@ for ( let i = 0; i < argv.length; i++ ) {
 	if ( a === '--id' ) { id = argv[ ++i ]; continue; }
 	if ( a === '--title' ) { title = argv[ ++i ]; continue; }
 	if ( a === '--preview-url' ) { previewUrl = argv[ ++i ]; continue; }
+	if ( a === '--description' ) { description = argv[ ++i ]; continue; }
+	if ( a === '--thumbnail' ) { thumbnail = argv[ ++i ]; continue; }
 	if ( a === '--plugin-dir' ) { pluginDir = resolve( argv[ ++i ] ); continue; }
 	if ( ! a.startsWith( '--' ) && ! exportPath ) { exportPath = resolve( a ); }
 }
@@ -43,7 +47,8 @@ for ( let i = 0; i < argv.length; i++ ) {
 if ( ! exportPath || ! id ) {
 	console.error(
 		'Usage: node tools/author.mjs <export.json> --id <slug>\n' +
-		'       [--title "Gallery Title"] [--preview-url "https://..."]\n' +
+		'       [--title "Gallery Title"] [--description "Card blurb"]\n' +
+		'       [--thumbnail path/to/card.png] [--preview-url "https://..."]\n' +
 		'       [--plugin-dir ../leco-client-portal]'
 	);
 	process.exit( 1 );
@@ -235,6 +240,41 @@ async function main() {
 	writeFileSync( templatePath, JSON.stringify( data, null, '\t' ) + '\n' );
 	console.log( `\nTemplate written: templates/${ id }/${ id }.json` );
 
+	// ── Thumbnail ────────────────────────────────────────────────────────
+
+	let thumbnailPath;
+	if ( thumbnail ) {
+		if ( ! existsSync( thumbnail ) ) {
+			console.error( `\nERROR: thumbnail not found: ${ thumbnail }` );
+			process.exit( 1 );
+		}
+
+		const thumbName = basename( thumbnail );
+		const thumbExt = extname( thumbName ).toLowerCase();
+
+		// Matches the plugin's thumbnail extension allowlist. SVG is excluded
+		// there, so accepting it here would produce a card with no image.
+		if ( ! [ '.png', '.jpg', '.jpeg', '.webp', '.gif' ].includes( thumbExt ) ) {
+			console.error( `\nERROR: thumbnail must be .png, .jpg, .jpeg, .webp or .gif. Got: ${ thumbExt }` );
+			process.exit( 1 );
+		}
+
+		const thumbDest = join( imagesDir, thumbName );
+		const thumbBytes = readFileSync( thumbnail );
+
+		if ( existsSync( thumbDest ) && ! readFileSync( thumbDest ).equals( thumbBytes ) ) {
+			const base = basename( thumbName, thumbExt );
+			console.error( `\nERROR: ${ thumbName } already exists in images/${ id }/ with different content.` );
+			console.error( 'jsDelivr caches @main URLs — reusing the filename serves stale content to customers.' );
+			console.error( `Rename the new image (e.g. "${ base }-v2${ thumbExt }") and re-run.` );
+			process.exit( 1 );
+		}
+
+		writeFileSync( thumbDest, thumbBytes );
+		thumbnailPath = `images/${ id }/${ thumbName }`;
+		console.log( `Thumbnail: ${ thumbnailPath }` );
+	}
+
 	// ── Upsert manifest ──────────────────────────────────────────────────
 
 	const manifestPath = join( repoRoot, 'manifest.json' );
@@ -250,13 +290,22 @@ async function main() {
 	};
 	const tier = data.tier || 'free';
 	if ( tier !== 'free' ) entry.tier = tier;
+	if ( description ) entry.description = description;
+	if ( thumbnailPath ) entry.thumbnail = thumbnailPath;
 	if ( previewUrl ) entry.preview_url = previewUrl;
 
 	const idx = manifest.templates.findIndex( t => t.id === id );
 	if ( idx >= 0 ) {
-		// Preserve existing preview_url when --preview-url isn't passed.
+		// Preserve existing presentation fields when their flag isn't passed,
+		// so a plain re-export doesn't silently strip the card's copy.
 		if ( ! previewUrl && manifest.templates[ idx ].preview_url ) {
 			entry.preview_url = manifest.templates[ idx ].preview_url;
+		}
+		if ( ! description && manifest.templates[ idx ].description ) {
+			entry.description = manifest.templates[ idx ].description;
+		}
+		if ( ! thumbnailPath && manifest.templates[ idx ].thumbnail ) {
+			entry.thumbnail = manifest.templates[ idx ].thumbnail;
 		}
 		manifest.templates[ idx ] = entry;
 	} else {
