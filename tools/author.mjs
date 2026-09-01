@@ -14,6 +14,7 @@
  *       [--thumbnail path/to/card.png]
  *       [--preview-url "https://..."]
  *       [--plugin-dir ../leco-client-portal]
+ *       [--allow-host example.com]
  */
 
 import {
@@ -27,11 +28,22 @@ const __dirname = fileURLToPath( new URL( '.', import.meta.url ) );
 const REPO = 'clientportal/client-portal-templates';
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/${ REPO }@main`;
 
+// Hosts a shipped template may link to. Anything else is refused, because a
+// template is imported onto someone else's site: a link to the site it was
+// authored on does not resolve there, and nothing downstream detects that.
+const DEFAULT_ALLOWED_HOSTS = [
+	'client-portal.io',
+	'www.client-portal.io',
+	'clientportalportals.com',
+	'cdn.jsdelivr.net',
+];
+
 // ── Args ────────────────────────────────────────────────────────────────────
 
 const argv = process.argv.slice( 2 );
 let exportPath, id, title, previewUrl, description, thumbnail;
 let pluginDir = resolve( __dirname, '../../leco-client-portal' );
+const allowHosts = [];
 
 for ( let i = 0; i < argv.length; i++ ) {
 	const a = argv[ i ];
@@ -41,6 +53,7 @@ for ( let i = 0; i < argv.length; i++ ) {
 	if ( a === '--description' ) { description = argv[ ++i ]; continue; }
 	if ( a === '--thumbnail' ) { thumbnail = argv[ ++i ]; continue; }
 	if ( a === '--plugin-dir' ) { pluginDir = resolve( argv[ ++i ] ); continue; }
+	if ( a === '--allow-host' ) { allowHosts.push( argv[ ++i ].toLowerCase() ); continue; }
 	if ( ! a.startsWith( '--' ) && ! exportPath ) { exportPath = resolve( a ); }
 }
 
@@ -49,7 +62,7 @@ if ( ! exportPath || ! id ) {
 		'Usage: node tools/author.mjs <export.json> --id <slug>\n' +
 		'       [--title "Gallery Title"] [--description "Card blurb"]\n' +
 		'       [--thumbnail path/to/card.png] [--preview-url "https://..."]\n' +
-		'       [--plugin-dir ../leco-client-portal]'
+		'       [--plugin-dir ../leco-client-portal] [--allow-host example.com]'
 	);
 	process.exit( 1 );
 }
@@ -164,6 +177,47 @@ if ( privateUploads.length ) {
 	privateUploads.forEach( a => console.error( `  ${ a.filename }  (ref: ${ a.ref_id })` ) );
 	process.exit( 1 );
 }
+
+// ── Check for links to hosts that will not resolve for customers ────────────
+
+// Only content is scanned. attachments[].source_url still points at the
+// authoring site at this stage and is rewritten to the CDN further down.
+const allowedHosts = new Set( [ ...DEFAULT_ALLOWED_HOSTS, ...allowHosts ] );
+const offendingHosts = new Map();
+
+for ( const content of contentFields ) {
+	// Block attributes hold URLs as JSON, so slashes arrive escaped.
+	const text = ( content || '' ).replace( /\\\//g, '/' );
+	for ( const m of text.matchAll( /https?:\/\/[^\s"'<>\\)]+/gi ) ) {
+		let host;
+		try {
+			host = new URL( m[ 0 ] ).hostname.toLowerCase();
+		} catch {
+			continue;
+		}
+		if ( allowedHosts.has( host ) ) continue;
+		if ( ! offendingHosts.has( host ) ) offendingHosts.set( host, new Set() );
+		offendingHosts.get( host ).add( m[ 0 ] );
+	}
+}
+
+if ( offendingHosts.size ) {
+	console.error( '' );
+	console.error( 'ERROR: Template content links to hosts that are not on the allowlist.' );
+	console.error( 'Templates are imported onto other people\'s sites, so a link to the site' );
+	console.error( 'you authored on will not resolve for them — and nothing downstream' );
+	console.error( 'detects that. Replace it with a placeholder token (e.g. "contact-link"),' );
+	console.error( 'remove the link, or allow the host deliberately.\n' );
+	for ( const [ host, urls ] of offendingHosts ) {
+		console.error( `  ${ host }` );
+		[ ...urls ].slice( 0, 3 ).forEach( u => console.error( `    ${ u }` ) );
+		if ( urls.size > 3 ) console.error( `    …and ${ urls.size - 3 } more` );
+	}
+	console.error( `\nAllowed by default: ${ DEFAULT_ALLOWED_HOSTS.join( ', ' ) }` );
+	console.error( 'To permit another: --allow-host example.com (repeatable)' );
+	process.exit( 1 );
+}
+console.log( `Links validated (no off-allowlist hosts in ${ contentFields.length } content fields).` );
 
 // ── Download images and rewrite URLs ────────────────────────────────────────
 

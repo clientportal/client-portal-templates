@@ -42,6 +42,7 @@ The script:
 - Reads the block allowlist from the plugin source (never duplicated)
 - Validates format, version, type, and blocks
 - Refuses any attachment from `uploads/leco-cp/`
+- Refuses content linking to a host outside the allowlist
 - Downloads images to `images/<id>/`
 - Rewrites `attachments[].source_url` to `@main` CDN URLs
 - Writes `templates/<id>/<id>.json`
@@ -150,6 +151,39 @@ thumbnail busts its own cache.
 
 **To add a brand new template**, use `author.mjs` (above) — `card.mjs` only
 edits templates that are already in the manifest.
+
+## Why links to your own site are refused
+
+A template is imported onto someone else's site. A link to the site you authored
+it on — `https://your-agency.com/contact`, or a local `wordpress.test` URL —
+still points there after the import, so it resolves to your site or to nothing.
+Nothing downstream catches this: the export carries the URL verbatim, and the
+plugin's importer has no way to tell an accidental self-link from a deliberate
+external one.
+
+So the script refuses any absolute URL in template content whose host is not on
+the allowlist:
+
+```
+client-portal.io, www.client-portal.io, clientportalportals.com, cdn.jsdelivr.net
+```
+
+It scans portal content, content pages, navigations and synced patterns.
+Attachment `source_url`s are skipped — they legitimately point at the authoring
+site at that stage and are rewritten to CDN URLs further down.
+
+For links that belong to the customer rather than to you, use a placeholder
+token instead of a URL — `contact-link`, `slack-link`, `invoice-link` — which is
+what the shipped templates do. The customer replaces it with their own.
+
+To allow a host deliberately:
+
+```
+node tools/author.mjs export.json --id onboarding --allow-host calendly.com
+```
+
+Repeatable. Prefer fixing the link over allowing the host: every allowed host is
+a URL that has to keep working on every customer's site indefinitely.
 
 ## Why images must be renamed when replaced
 
