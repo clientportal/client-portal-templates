@@ -3,10 +3,10 @@
 		{
 			"id": "onboarding",
 			"title": "Onboarding",
-			"description": "Give new clients a branded first step before the project kicks off.",
 			"file": "templates/onboarding/onboarding.json",
-			"thumbnail": "images/onboarding/onboarding-card.webp",
-			"preview_url": "https://clientportalportals.com/client/onboarding-inspiration/"
+			"preview_url": "https://clientportalportals.com/client/onboarding-inspiration/",
+			"description": "Give new clients a branded first step before the project kicks off.",
+			"thumbnail": "images/onboarding/onboarding-card.webp"
 		}
 	]
 }
