@@ -6,6 +6,13 @@ Curated templates served to the Client Portal plugin's Featured Templates galler
 
 The plugin fetches `manifest.json` from this URL, reads the template list, and displays it in the portal chooser. Adding a template never requires a plugin release.
 
+## Writing the content
+
+This file covers the mechanics. **[CONTENT-GUIDE.md](CONTENT-GUIDE.md)** covers what
+goes in a template: real demo content with no images or embeds, forms rewritten as
+their questions, setup notes and quick tips, callout colours, and why each template
+ships exactly one synced pattern.
+
 ## Repo structure
 
 ```
