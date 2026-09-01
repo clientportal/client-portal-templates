@@ -7,6 +7,13 @@
 			"preview_url": "https://clientportalportals.com/client/onboarding-inspiration/",
 			"description": "Give new clients a branded first step before the project kicks off.",
 			"thumbnail": "images/onboarding/onboarding-card.webp"
+		},
+		{
+			"id": "web-design",
+			"title": "Web Design",
+			"file": "templates/web-design/web-design.json",
+			"preview_url": "https://clientportalportals.com/client/polymark-redesign/",
+			"description": "Take a website project from first brief to launch day, with feedback and handover built in."
 		}
 	]
 }

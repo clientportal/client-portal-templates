@@ -2,8 +2,9 @@
 
 `README.md` covers the mechanics — export, `author.mjs`, the CDN, testing. This
 covers what goes *in* a template, and why. Conventions here were set while building
-the Onboarding template; read that one (`templates/onboarding/onboarding.json`, or
-apply it locally) before writing a new one.
+the Onboarding template and revised while building Web Design; read one of them
+(`templates/onboarding/onboarding.json`, `templates/web-design/web-design.json`, or
+apply either locally) before writing a new one.
 
 ## The one rule everything else follows from
 
@@ -87,6 +88,12 @@ to keep working on every customer's site indefinitely.
 **External links open in a new tab** — `target="_blank" rel="noopener noreferrer"`.
 A client clicking a link should not lose the portal they were reading.
 
+**Give a links module two links, not one.** Either works — a single link is a perfectly
+valid way to build a module, and the plugin sends the client straight to it rather than
+opening the popup. But a template is a demo, and the popup is the thing worth showing:
+it's where the module's text above and below appears. Two links shows what the module
+can do. (It also means a `#` placeholder isn't the module's only destination.)
+
 ## Setup notes
 
 Notes addressed to the customer, not their client. They render in the portal until
@@ -161,16 +168,43 @@ feature shouldn't be a nasty surprise.
 No in-content note is needed: the plugin links the docs from the block toolbar and
 the block card whenever a synced pattern is selected.
 
+## Only ship what Client Portal can build
+
+A template is a portal, so everything in it has to be something a customer could have
+built themselves in Client Portal: phases, modules, content pages, and the blocks the
+importer allows.
+
+The temptation is to reach for a marketing-page layout — a three-column pricing grid,
+a feature comparison table, a hero band. Those may render, but they teach the wrong
+thing. Someone who applies the template and then tries to recreate that section in
+their next portal will not find it, and the template has made the product look like
+something it isn't.
+
+Web Design originally shipped a three-tier pricing grid for care plans on the portal
+home page. It was cut for exactly this reason, and the same content now lives where it
+belongs — a content page, written as prose and a list.
+
+Ask of any section: **could a customer have made this in the portal editor?** If not,
+it does not ship.
+
 ## Voice and length
 
 - Plain and warm, British spelling. Contractions fine.
 - **Straight apostrophes** (`'`), not curly — matches existing content.
 - FAQ answers: two or three sentences. Six or seven questions is plenty.
 - Module descriptions: one line.
-- Write as a real studio talking to a real client. Onboarding uses a consistent
-  fictional team (Jamie as point of contact, Sam design, Priya development) — pick a
-  persona per template and stay in it. Whether new templates reuse those names or get
-  their own is an open question; consistency *within* a template matters more.
+- **Keep the invented world to a minimum.** Write as a real studio talking to a real
+  client, but don't build a cast. Prefer copy that needs no name at all — "your project
+  lead", "the design team", "we" — over a named persona. Onboarding predates this
+  decision and still uses Jamie, Sam and Priya; don't add to it.
+
+  The distinction that matters: write copy that **doesn't need a name**, not copy with
+  a blank where a name goes. "Your main point of contact is your project lead" ships
+  fine. `[Your Name]` scattered through a page is the empty-shell problem this guide
+  exists to prevent, wearing a different hat.
+
+  Company names go the same way. Web Design was built from an inspiration portal for a
+  fictional brand called Polymark, and nothing of that name survives in the template.
 
 ## A structure that works
 
@@ -185,6 +219,50 @@ Onboarding's shape, which generalises:
 Not every template needs four sections, but the progression — orient, act, reference,
 sell — holds for most client work.
 
+Web Design uses a three-phase variant of the same idea, mapped to project stages
+rather than content types:
+
+1. **Discovery** — getting started, questionnaire, brand assets, kickoff.
+2. **Design and development** — the work itself, and the client's feedback on it.
+3. **Launch and handoff** — the site is live; what happens now. *The synced pattern
+   lives here, in a "What happens next" content page carrying the care-plan offer.*
+
+Both shapes end on the upsell. That placement is deliberate: the client is happiest
+with the work at handover, which is when a maintenance offer reads as care rather than
+a sales pitch.
+
+**Every portal ends with a call to action.** The `leco-cp/call-to-action` pattern — a
+full-width band with one line of copy and a button — sits between the phases and the
+footer. Client portals ship with one; a template without it looks unfinished.
+
+## The template and its inspiration portal are not the same thing
+
+Every template's gallery card links to a live inspiration portal on
+`clientportalportals.com`. They are close relatives, not copies, and this is the
+easiest thing in the whole process to get wrong.
+
+**The inspiration portal keeps its images.** It is a real portal on a real site, and
+the images are most of what makes it worth looking at. The zero-attachment rule governs
+the *template*, not the example. Onboarding has worked this way from the start.
+
+So the template is the same structure with the weight taken out:
+
+| | Inspiration portal | Template |
+|---|---|---|
+| Images, embeds, video | Yes — that's the point | None |
+| Real deliverables (a full brand doc, a finished mockup) | Yes | A setup note where it would go |
+| Client and studio names | Fictional is fine | Generic |
+| Setup notes and quick tips | No | Yes |
+
+Keep the phases and the module names lined up, so someone moving from the example to
+their own copy recognises what they're looking at. Everything else can differ, and a
+template does not need a rebuilt inspiration portal just because it drops a module or
+rewrites a page.
+
+A module that only works with an image — a moodboard, a design inspiration slider —
+stays in the template as an **empty module with a setup note**. Deleting it breaks the
+structural parity; leaving it empty teaches what belongs there.
+
 ## Before you ship
 
 - [ ] Export shows **`attachments: 0`**
@@ -198,6 +276,13 @@ sell — holds for most client work.
       stripping, so test-import as an **Editor**
 - [ ] Import round-trip tested locally: refs resolve, no `{{placeholders}}` left
 - [ ] `--title` matches the card name, not the portal's internal title
+- [ ] No invented brand, company or person names carried over from the source portal
+- [ ] Links modules ship two links, so the popup and its text are on show
+- [ ] Nothing in the template that a customer could not build in Client Portal
+- [ ] The portal ends with a call-to-action band
+- [ ] Any content page relying on comments carries a setup note linking the
+      [enable-comments doc](https://client-portal.io/support/enable-comments-in-your-portals-y8q7z)
+      — comments are off by default, so the thread simply will not appear
 
 Any `core/*` block is allowed by the importer, plus the `leco-cp/*` allowlist — so
 accordions, tables and pullquotes are all available. Onboarding's How We Work uses a
@@ -205,17 +290,19 @@ five-item accordion and two tables.
 
 ## Things worth deciding before the next template
 
-1. **Each template needs its own inspiration portal.** The gallery card's
-   `preview_url` and the "See the full example portal here" links inside the content
-   both point at a live portal on `clientportalportals.com`. A new template means
-   building that too, or those links have nowhere to go.
-2. **Personas** — reuse Onboarding's studio and cast across templates, or give each
-   its own? Reuse builds familiarity; separate feels more like a real varied business.
-3. **Which templates next.** Sections that generalise across many businesses make
+1. **Which templates next.** Sections that generalise across many businesses make
    better templates than tightly niche ones.
-4. **A broader upsell doc.** The Add-Ons tip links the WooCommerce article, which only
+2. **A broader upsell doc.** The Add-Ons tip links the WooCommerce article, which only
    covers selling portal access — not landing pages or content pages. A doc covering
    all three ways would be a better target.
+3. **Whether one inspiration portal can serve two templates.** Web Design points at the
+   Polymark portal, which existed long before the template did. It works, but the fit
+   is loose in places — the portal carries a Brand Guidelines module the template drops.
+
+Two questions that used to live here are now settled: templates do **not** each need a
+purpose-built inspiration portal (see the section above — an existing portal is fine,
+and it keeps its images), and personas are **out** rather than reused (see Voice and
+length).
 
 ## The mechanical bit
 
