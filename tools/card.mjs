@@ -295,7 +295,21 @@ function git( args ) {
  * @return {string[]} Repo-relative paths.
  */
 function purgePaths( e ) {
-	return e.thumbnail ? [ 'manifest.json', e.thumbnail ] : [ 'manifest.json' ];
+	// The template body belongs here as well as the card's own assets. A
+	// re-export rewrites e.file, and purging only the manifest and thumbnail
+	// leaves jsDelivr serving the previous template for up to 24 hours — the
+	// gallery card would update while the portal it creates silently did not.
+	const paths = [ 'manifest.json' ];
+
+	if ( e.file ) {
+		paths.push( e.file );
+	}
+
+	if ( e.thumbnail ) {
+		paths.push( e.thumbnail );
+	}
+
+	return paths;
 }
 
 /**

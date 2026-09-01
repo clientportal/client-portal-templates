@@ -352,6 +352,14 @@ async function main() {
 	if ( idx >= 0 ) {
 		// Preserve existing presentation fields when their flag isn't passed,
 		// so a plain re-export doesn't silently strip the card's copy.
+		//
+		// Title included: it defaults to the exported portal's own title, which
+		// is the internal name and rarely the card's. Without this a re-export
+		// renames the card — "Onboarding" became "Onboarding Template" — which
+		// is easy to miss in a diff that is mostly a rewritten template body.
+		if ( ! title && manifest.templates[ idx ].title ) {
+			entry.title = manifest.templates[ idx ].title;
+		}
 		if ( ! previewUrl && manifest.templates[ idx ].preview_url ) {
 			entry.preview_url = manifest.templates[ idx ].preview_url;
 		}

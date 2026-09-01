@@ -46,7 +46,9 @@ The script:
 - Downloads images to `images/<id>/`
 - Rewrites `attachments[].source_url` to `@main` CDN URLs
 - Writes `templates/<id>/<id>.json`
-- Upserts the manifest entry (preserves `preview_url` on re-run)
+- Upserts the manifest entry, preserving the card's `title`, `description`,
+  `thumbnail` and `preview_url` when you don't pass their flags — so a plain
+  re-export updates the template body and leaves the card alone
 
 ### 4. Push images to main
 
