@@ -190,7 +190,11 @@ it does not ship.
 ## Voice and length
 
 - Plain and warm, British spelling. Contractions fine.
-- **Straight apostrophes** (`'`), not curly — matches existing content.
+- **Straight apostrophes** (`'`), not curly, matching existing content.
+- **No em dashes.** Use a colon, a comma, a full stop, or brackets instead. A dash
+  reads as machine-written to a lot of people now, and a template is the first
+  writing a customer sees from us. Web Design shipped with 35 and they were all
+  replaced; don't reintroduce them.
 - FAQ answers: two or three sentences. Six or seven questions is plenty.
 - Module descriptions: one line.
 - **Keep the invented world to a minimum.** Write as a real studio talking to a real
