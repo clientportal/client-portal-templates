@@ -136,6 +136,127 @@ function extractBlockNames( content ) {
 	return names;
 }
 
+// ── Normalise block attributes ──────────────────────────────────────────────
+
+// A block comment's attributes are JSON, and the block editor escapes <, > and
+// " inside them as <, > and ". That is not cosmetic. The
+// importer runs wp_kses_post() over every content field, and kses treats the
+// first ">" inside an HTML comment as the end of it: a setup note written as
+// "textBelow":"<p><strong>..." turns the whole comment into escaped text and
+// the block disappears on import.
+//
+// Content typed into the editor is already safe. Content hand-written into the
+// JSON is not, and the damage only shows up on import, never on the authoring
+// site. Web Design lost six of twelve modules that way.
+
+/**
+ * Find the brace-balanced JSON object starting at `start`, honouring strings.
+ *
+ * @param {string} s     Content to scan.
+ * @param {number} start Index of the opening brace.
+ * @return {{raw: string, end: number}|null} The object text and the index after it.
+ */
+function findJsonAt( s, start ) {
+	let depth = 0;
+	let inStr = false;
+	let esc = false;
+
+	for ( let i = start; i < s.length; i++ ) {
+		const c = s[ i ];
+
+		if ( inStr ) {
+			if ( esc ) {
+				esc = false;
+			} else if ( '\\' === c ) {
+				esc = true;
+			} else if ( '"' === c ) {
+				inStr = false;
+			}
+			continue;
+		}
+
+		if ( '"' === c ) {
+			inStr = true;
+		} else if ( '{' === c ) {
+			depth++;
+		} else if ( '}' === c ) {
+			depth--;
+			if ( 0 === depth ) {
+				return { raw: s.slice( start, i + 1 ), end: i + 1 };
+			}
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Re-serialise every block comment's attributes the way the editor would.
+ *
+ * @param {string} content A post_content field.
+ * @return {{content: string, fixed: number}} Normalised content and how many blocks changed.
+ */
+function normaliseBlockAttrs( content ) {
+	const open = /<!-- wp:[a-z][a-z0-9-]*(?:\/[a-z][a-z0-9-]*)? /g;
+	let out = '';
+	let pos = 0;
+	let fixed = 0;
+	let m;
+
+	while ( ( m = open.exec( content ) ) !== null ) {
+		const braceAt = m.index + m[ 0 ].length;
+		if ( '{' !== content[ braceAt ] ) {
+			continue;
+		}
+
+		const found = findJsonAt( content, braceAt );
+		if ( ! found ) {
+			continue;
+		}
+
+		let attrs;
+		try {
+			attrs = JSON.parse( found.raw );
+		} catch ( e ) {
+			continue;
+		}
+
+		// After stringify every structural character is one of {}[]":, so a
+		// remaining angle bracket or escaped quote is inside a string value.
+		const next = JSON.stringify( attrs )
+			.split( '\\"' ).join( '\\u0022' )
+			.split( '<' ).join( '\\u003c' )
+			.split( '>' ).join( '\\u003e' );
+
+		if ( next !== found.raw ) {
+			fixed++;
+		}
+
+		out += content.slice( pos, braceAt ) + next;
+		pos = found.end;
+		open.lastIndex = found.end;
+	}
+
+	return { content: out + content.slice( pos ), fixed };
+}
+
+let attrsFixed = 0;
+
+function normaliseField( owner ) {
+	const r = normaliseBlockAttrs( owner.post_content );
+	owner.post_content = r.content;
+	attrsFixed += r.fixed;
+}
+
+normaliseField( data.portal );
+for ( const cp of data.content_pages || [] ) normaliseField( cp );
+for ( const nav of data.navigations || [] ) normaliseField( nav );
+for ( const pat of data.synced_patterns || [] ) normaliseField( pat );
+
+if ( attrsFixed ) {
+	console.log( `Block attributes normalised in ${ attrsFixed } block(s) (raw <, > or " escaped for wp_kses_post).` );
+}
+
 const contentFields = [ data.portal.post_content ];
 for ( const cp of data.content_pages || [] ) contentFields.push( cp.post_content );
 for ( const nav of data.navigations || [] ) contentFields.push( nav.post_content );

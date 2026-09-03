@@ -290,7 +290,7 @@ Mechanical:
 - [ ] Every module setup note ends with the linked six words; content page notes end with "Delete this note before sharing."
 - [ ] Exactly one synced pattern, on a section identical across clients
 - [ ] At least one quick tip that teaches something
-- [ ] Content survives `wp_kses_post()`. Admins have `unfiltered_html` and won't see stripping, so test-import as an Editor
+- [ ] Content survives `wp_kses_post()`. The importer runs it on every field regardless of who is importing, so an admin import is a fair test. Check the module count in the imported portal, not just that the import succeeded
 - [ ] Import round-trip tested locally: refs resolve, no `{{placeholders}}` left
 - [ ] `--title` matches the card name, not the portal's internal title
 - [ ] No invented brand, company or person names carried over from the source portal
@@ -333,3 +333,24 @@ Settled: templates do not each need a purpose-built inspiration portal (an exist
 Full detail in `README.md`. In short: build the portal locally, export, run `node tools/author.mjs <export.json> --id <slug>`, commit, push. The card's title, description, thumbnail and preview URL are preserved on re-export, so a plain rebuild updates the template body and leaves the card alone.
 
 The gallery is not live to customers yet, so `main` is effectively staging.
+
+### Edit in the editor, not in the JSON
+
+Build and change templates in the block editor, then export. Editing an exported
+JSON by hand looks harmless and is not.
+
+A block's attributes are JSON inside an HTML comment, and the editor escapes `<`,
+`>` and `"` in them as `\u003c`, `\u003e` and `\u0022`. That matters because the
+importer runs `wp_kses_post()` on every field, and kses reads the first `>` inside a
+comment as the end of it. A setup note hand-written as
+`"textBelow":"<p><strong>Setup note:</strong>...` turns the entire block comment into
+escaped text, and the module is gone.
+
+It fails in the worst possible way: the authoring site looks perfect, because nothing
+there re-parses the comment. The damage only appears after import. Web Design shipped
+this way and lost six of its twelve modules, every one of them a module carrying a
+setup note.
+
+`author.mjs` now normalises block attributes on the way through and says so when it
+changes anything. If you see that line, something was hand-edited. Nothing is broken,
+but go and check what else that edit touched.
