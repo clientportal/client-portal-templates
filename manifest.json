@@ -22,6 +22,27 @@
 			"file": "templates/care-plan/care-plan.json",
 			"description": "Show clients what their care plan covers, and give them one place to ask for changes.",
 			"thumbnail": "images/care-plan/care-plan-card.webp"
+		},
+		{
+			"id": "group-coaching",
+			"title": "Group Coaching",
+			"description": "Run a six-week cohort with the calls, the recordings, and the work between them in one place.",
+			"file": "templates/group-coaching/group-coaching.json",
+			"thumbnail": "images/group-coaching/group-coaching-card.webp"
+		},
+		{
+			"id": "one-to-one-coaching",
+			"title": "One to One Coaching",
+			"description": "Give a coaching client one place for their focus, their session notes, and everything between calls.",
+			"file": "templates/one-to-one-coaching/one-to-one-coaching.json",
+			"thumbnail": "images/one-to-one-coaching/one-to-one-coaching-card.webp"
+		},
+		{
+			"id": "online-course",
+			"title": "Online Course",
+			"description": "Release a course module by module, with recordings, worksheets, and somewhere to ask questions.",
+			"file": "templates/online-course/online-course.json",
+			"thumbnail": "images/online-course/online-course-card.webp"
 		}
 	]
 }
