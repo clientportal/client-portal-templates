@@ -19,8 +19,8 @@
 		{
 			"id": "care-plan",
 			"title": "Care Plan",
-			"description": "Show clients what their care plan covers, and give them one place to ask for changes.",
 			"file": "templates/care-plan/care-plan.json",
+			"description": "Show clients what their care plan covers, and give them one place to ask for changes.",
 			"thumbnail": "images/care-plan/care-plan-card.webp"
 		}
 	]
