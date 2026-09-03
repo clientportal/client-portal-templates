@@ -11,10 +11,10 @@
 		{
 			"id": "web-design",
 			"title": "Web Design",
-			"description": "Take a website project from first brief to launch day, with feedback and handover built in.",
 			"file": "templates/web-design/web-design.json",
-			"thumbnail": "images/web-design/web-design-card.webp",
-			"preview_url": "https://clientportalportals.com/client/polymark-redesign/"
+			"preview_url": "https://clientportalportals.com/client/polymark-redesign/",
+			"description": "Take a website project from first brief to launch day, with feedback and handover built in.",
+			"thumbnail": "images/web-design/web-design-card.webp"
 		}
 	]
 }
