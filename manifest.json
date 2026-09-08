@@ -19,9 +19,10 @@
 		{
 			"id": "care-plan",
 			"title": "Care Plan",
-			"file": "templates/care-plan/care-plan.json",
 			"description": "Show clients what their care plan covers, and give them one place to ask for changes.",
-			"thumbnail": "images/care-plan/care-plan-card.webp"
+			"file": "templates/care-plan/care-plan.json",
+			"thumbnail": "images/care-plan/care-plan-card.webp",
+			"preview_url": "https://clientportalportals.com/client/care-plan/"
 		},
 		{
 			"id": "group-coaching",
