@@ -83,7 +83,7 @@ That works because it argues against the obvious approach and says why. Compare 
 
 Aim for one or two per template, where you know something. A tip that just restates the feature is filler. A tip that invents a statistic to justify itself ("clients are far more likely to...") is worse than filler, because it teaches the customer to make things up too.
 
-The lightning bolt is the existing convention for quick tips. Keep it there and nowhere else. No other emoji anywhere in a template.
+The lightning bolt is the existing convention for quick tips. Emoji are allowed anywhere else in a template too, for example on callout titles.
 
 ## Voice
 
@@ -303,7 +303,6 @@ Writing. Search the full export for:
 
 - [ ] Em dashes and en dashes
 - [ ] Exclamation marks
-- [ ] Emoji other than the quick tip lightning bolt
 - [ ] Every word in the avoid list
 - [ ] "I" or "we" inside any callout
 - [ ] Square-bracket placeholders in body copy
