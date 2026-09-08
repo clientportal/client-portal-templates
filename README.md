@@ -19,6 +19,7 @@ ships exactly one synced pattern.
 manifest.json                   Gallery index — the plugin reads this
 templates/<id>/<id>.json        Template JSON (rewritten export with CDN URLs)
 images/<id>/<filename>          Images referenced by template source_urls
+images/<id>/portal-files/       Files and images for the inspiration portal (storage only, see CONTENT-GUIDE)
 tools/author.mjs                Add a new template (Node, zero dependencies)
 tools/card.mjs                  Update an existing template's gallery card
 package.json                    ESM module declaration

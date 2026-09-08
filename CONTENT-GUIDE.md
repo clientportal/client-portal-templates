@@ -279,6 +279,24 @@ Keep the phases and the module names lined up, so someone moving from the exampl
 
 A module that only works with an image (a moodboard, a design inspiration slider) stays in the template as an empty module with a setup note. Deleting it breaks the structural parity; leaving it empty teaches what belongs there.
 
+### Where the inspiration portal's files live
+
+Every file attached to an inspiration portal, and every image made for it, is kept in
+this repo under `images/<id>/portal-files/`, one folder per template, named as the
+file appears in the portal (`Care plan terms.pdf`, `Week 1 worksheet.pdf`). Nowhere
+else: not the Desktop, not a scratch folder, not only in the local site's uploads.
+
+Two reasons. Local attachments do not survive export and import, so the live portal on
+`clientportalportals.com` has to be fed these files by hand, and they need a permanent
+home to upload from. And when a portal's colours or copy change, the files have to be
+regenerated to match, which means the previous version has to be findable.
+
+These folders are not referenced by any template JSON or by the manifest, so the
+gallery ignores them. They are storage, not a CDN path.
+
+When you add or regenerate a file: put it in the local site's Media Library for the
+portal, copy it to `images/<id>/portal-files/` under its display name, and commit.
+
 ## Before you ship
 
 Mechanical:
