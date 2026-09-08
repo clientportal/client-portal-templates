@@ -45,7 +45,8 @@
 			"title": "Online Course",
 			"description": "Release a course module by module, with recordings, worksheets, and somewhere to ask questions.",
 			"file": "templates/online-course/online-course.json",
-			"thumbnail": "images/online-course/online-course-card.webp"
+			"thumbnail": "images/online-course/online-course-card.webp",
+			"preview_url": "https://clientportalportals.com/client/online-course/"
 		}
 	]
 }
