@@ -34,8 +34,9 @@
 		{
 			"id": "one-to-one-coaching",
 			"title": "One to One Coaching",
-			"description": "Give a coaching client one place for their focus, their session notes, and everything between calls.",
 			"file": "templates/one-to-one-coaching/one-to-one-coaching.json",
+			"preview_url": "https://clientportalportals.com/client/one-to-one-coaching/",
+			"description": "Give a coaching client one place for their focus, their session notes, and everything between calls.",
 			"thumbnail": "images/one-to-one-coaching/one-to-one-coaching-card.webp"
 		},
 		{
